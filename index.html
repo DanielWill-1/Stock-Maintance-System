@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Maintenance System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Maintenance</h1>
+
+        <!-- Form to Add Stock -->
+        <section class="add-stock">
+            <h2>Add New Item</h2>
+            <form id="stock-form">
+                <div class="form-group">
+                    <label for="item-name">Item Name:</label>
+                    <input type="text" id="item-name" name="item-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price per Unit:</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required>
+                </div>
+                <button type="submit">Add Item</button>
+            </form>
+        </section>
+
+        <!-- Stock Table -->
+        <section class="stock-table">
+            <h2>Current Stock</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Price per Unit</th>
+                        <th>Total Value</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-body">
+                    <!-- Sample Data -->
+                    <tr>
+                        <td>1</td>
+                        <td>Laptop</td>
+                        <td>10</td>
+                        <td>$500.00</td>
+                        <td>$5000.00</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Mouse</td>
+                        <td>50</td>
+                        <td>$10.00</td>
+                        <td>$500.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

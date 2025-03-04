@@ -8,11 +8,55 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
         .container {
             width: 80%;
             margin: auto;
             text-align: center;
+        }
+        .navbar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 20px;
+            background-color: #333;
+            position: relative;
+        }
+        .login-menu {
+            position: relative;
+            display: inline-block;
+        }
+        .login-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .login-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 150px;
+            z-index: 1;
+            border-radius: 5px;
+        }
+        .login-dropdown a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: black;
+        }
+        .login-dropdown a:hover {
+            background-color: #f4f4f4;
+        }
+        .login-menu:hover .login-dropdown {
+            display: block;
         }
         h1 {
             text-align: center;
@@ -39,6 +83,16 @@
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <div class="login-menu">
+            <button class="login-button">Login</button>
+            <div class="login-dropdown">
+                <a href="login.html?type=user">User Login</a>
+                <a href="login.html?type=admin">Admin Login</a>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Stock Maintenance</h1>
 

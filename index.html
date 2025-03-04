@@ -5,6 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Maintenance System</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -41,16 +73,20 @@
                         <th>Quantity</th>
                         <th>Price per Unit</th>
                         <th>Total Value</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="stock-body">
-                    <!-- Sample Data -->
                     <tr>
                         <td>1</td>
                         <td>Laptop</td>
                         <td>10</td>
                         <td>$500.00</td>
                         <td>$5000.00</td>
+                        <td>
+                            <button onclick="editItem(this)">Modify</button>
+                            <button onclick="deleteItem(this)">Delete</button>
+                        </td>
                     </tr>
                     <tr>
                         <td>2</td>
@@ -58,11 +94,34 @@
                         <td>50</td>
                         <td>$10.00</td>
                         <td>$500.00</td>
+                        <td>
+                            <button onclick="editItem(this)">Modify</button>
+                            <button onclick="deleteItem(this)">Delete</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </section>
     </div>
-    <script src="script.js"></script>
+    <script>
+        function deleteItem(button) {
+            let row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function editItem(button) {
+            let row = button.parentNode.parentNode;
+            let cells = row.getElementsByTagName("td");
+            let itemName = cells[1].innerText;
+            let quantity = cells[2].innerText;
+            let price = cells[3].innerText.replace("$", "");
+
+            document.getElementById("item-name").value = itemName;
+            document.getElementById("quantity").value = quantity;
+            document.getElementById("price").value = price;
+
+            deleteItem(button);
+        }
+    </script>
 </body>
 </html>

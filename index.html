@@ -5,11 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Maintenance System</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+        }
+        .title {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 24px;
+        }
+        .login-menu {
+            position: relative;
+        }
+        .login-button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .login-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 120px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .login-dropdown a {
+            display: block;
+            padding: 8px;
+            text-decoration: none;
+            color: black;
+            font-size: 14px;
+        }
+        .login-dropdown a:hover {
+            background-color: #f4f4f4;
+        }
+        .login-menu:hover .login-dropdown {
+            display: block;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .add-stock {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Stock Maintenance</h1>
+    <div class="header">
+        <div class="title">Stock Maintenance</div>
+        <div class="login-menu">
+            <button class="login-button">Login</button>
+            <div class="login-dropdown">
+                <a href="login.html?type=user">User Login</a>
+                <a href="login.html?type=admin">Admin Login</a>
+            </div>
+        </div>
+    </div>
 
+    <div class="container">
         <!-- Form to Add Stock -->
         <section class="add-stock">
             <h2>Add New Item</h2>
@@ -41,16 +133,20 @@
                         <th>Quantity</th>
                         <th>Price per Unit</th>
                         <th>Total Value</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="stock-body">
-                    <!-- Sample Data -->
                     <tr>
                         <td>1</td>
                         <td>Laptop</td>
                         <td>10</td>
                         <td>$500.00</td>
                         <td>$5000.00</td>
+                        <td>
+                            <button onclick="editItem(this)">Modify</button>
+                            <button onclick="deleteItem(this)">Delete</button>
+                        </td>
                     </tr>
                     <tr>
                         <td>2</td>
@@ -58,11 +154,69 @@
                         <td>50</td>
                         <td>$10.00</td>
                         <td>$500.00</td>
+                        <td>
+                            <button onclick="editItem(this)">Modify</button>
+                            <button onclick="deleteItem(this)">Delete</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </section>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        document.getElementById("stock-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let itemName = document.getElementById("item-name").value;
+            let quantity = document.getElementById("quantity").value;
+            let price = document.getElementById("price").value;
+            let totalValue = (quantity * price).toFixed(2);
+
+            addItemToTable(itemName, quantity, price, totalValue);
+
+            // Reset Form
+            document.getElementById("stock-form").reset();
+        });
+
+        function addItemToTable(name, qty, price, total) {
+            let table = document.getElementById("stock-body");
+            let rowCount = table.rows.length + 1;
+
+            let newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td>${rowCount}</td>
+                <td>${name}</td>
+                <td>${qty}</td>
+                <td>$${parseFloat(price).toFixed(2)}</td>
+                <td>$${total}</td>
+                <td>
+                    <button onclick="editItem(this)">Modify</button>
+                    <button onclick="deleteItem(this)">Delete</button>
+                </td>
+            `;
+
+            table.appendChild(newRow);
+        }
+
+        function deleteItem(button) {
+            let row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function editItem(button) {
+            let row = button.parentNode.parentNode;
+            let cells = row.getElementsByTagName("td");
+            let itemName = cells[1].innerText;
+            let quantity = cells[2].innerText;
+            let price = cells[3].innerText.replace("$", "");
+
+            document.getElementById("item-name").value = itemName;
+            document.getElementById("quantity").value = quantity;
+            document.getElementById("price").value = price;
+
+            deleteItem(button);
+        }
+    </script>
 </body>
 </html>

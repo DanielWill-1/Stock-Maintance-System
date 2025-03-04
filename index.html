@@ -11,30 +11,30 @@
             margin: 0;
             padding: 0;
         }
-        .container {
-            width: 80%;
-            margin: auto;
-            text-align: center;
-        }
-        .navbar {
+        .header {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
             padding: 10px 20px;
             background-color: #333;
-            position: relative;
+            color: white;
+        }
+        .title {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 24px;
         }
         .login-menu {
             position: relative;
-            display: inline-block;
         }
         .login-button {
             background-color: #007bff;
             color: white;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border: none;
             cursor: pointer;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 14px;
         }
         .login-dropdown {
             display: none;
@@ -42,15 +42,16 @@
             right: 0;
             background-color: white;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            min-width: 150px;
-            z-index: 1;
+            min-width: 120px;
             border-radius: 5px;
+            z-index: 1000;
         }
         .login-dropdown a {
             display: block;
-            padding: 10px;
+            padding: 8px;
             text-decoration: none;
             color: black;
+            font-size: 14px;
         }
         .login-dropdown a:hover {
             background-color: #f4f4f4;
@@ -58,11 +59,17 @@
         .login-menu:hover .login-dropdown {
             display: block;
         }
-        h1 {
-            text-align: center;
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
         }
         .form-group {
             margin-bottom: 15px;
+        }
+        .add-stock {
+            text-align: center;
+            margin-bottom: 30px;
         }
         table {
             width: 100%;
@@ -83,7 +90,8 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
+    <div class="header">
+        <div class="title">Stock Maintenance</div>
         <div class="login-menu">
             <button class="login-button">Login</button>
             <div class="login-dropdown">
@@ -94,8 +102,6 @@
     </div>
 
     <div class="container">
-        <h1>Stock Maintenance</h1>
-
         <!-- Form to Add Stock -->
         <section class="add-stock">
             <h2>Add New Item</h2>
@@ -157,7 +163,42 @@
             </table>
         </section>
     </div>
+
     <script>
+        document.getElementById("stock-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let itemName = document.getElementById("item-name").value;
+            let quantity = document.getElementById("quantity").value;
+            let price = document.getElementById("price").value;
+            let totalValue = (quantity * price).toFixed(2);
+
+            addItemToTable(itemName, quantity, price, totalValue);
+
+            // Reset Form
+            document.getElementById("stock-form").reset();
+        });
+
+        function addItemToTable(name, qty, price, total) {
+            let table = document.getElementById("stock-body");
+            let rowCount = table.rows.length + 1;
+
+            let newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td>${rowCount}</td>
+                <td>${name}</td>
+                <td>${qty}</td>
+                <td>$${parseFloat(price).toFixed(2)}</td>
+                <td>$${total}</td>
+                <td>
+                    <button onclick="editItem(this)">Modify</button>
+                    <button onclick="deleteItem(this)">Delete</button>
+                </td>
+            `;
+
+            table.appendChild(newRow);
+        }
+
         function deleteItem(button) {
             let row = button.parentNode.parentNode;
             row.parentNode.removeChild(row);

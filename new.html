@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+        h1 {
+            color: #007bff;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            if (localStorage.getItem("isLoggedIn") === "true") {
+                setTimeout(function () {
+                    window.location.href = "index.html"; // Redirect after 5 seconds
+                }, 5000);
+            } else {
+                window.location.href = "login.html"; // If not logged in, go back to login
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Logging in...</h1>
+        <p>You will be redirected in 5 seconds.</p>
+    </div>
+</body>
+</html>

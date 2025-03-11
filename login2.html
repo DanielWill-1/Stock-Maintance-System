@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Maintenance System</title>
+    <title>Stock Maintenance System - Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,9 +65,10 @@
         function login() {
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
+
             if (username === "admin" && password === "password") {
-                alert("Login successful");
-                window.location.href = "dashboard.html";
+                localStorage.setItem("isLoggedIn", "true");
+                window.location.href = "index.html"; // Redirects to new.html first
             } else {
                 document.getElementById("error").innerText = "Invalid credentials";
             }

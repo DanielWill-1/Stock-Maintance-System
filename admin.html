@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Approval</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Admin Approval - Stock Changes</h2>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Requested Change</th>
+                <th>Requested By</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="approvalTable">
+            <tr>
+                <td>Sample Item</td>
+                <td>Increase Quantity by 5</td>
+                <td>John Doe</td>
+                <td>
+                    <button onclick="approveRequest(this)">Approve</button>
+                    <button onclick="rejectRequest(this)">Reject</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function approveRequest(button) {
+            let row = button.parentElement.parentElement;
+            row.style.backgroundColor = "#c8e6c9"; // Light green for approved
+            alert("Stock change approved!");
+            row.remove(); // Simulate approval (remove from list)
+        }
+
+        function rejectRequest(button) {
+            let row = button.parentElement.parentElement;
+            row.style.backgroundColor = "#ffcdd2"; // Light red for rejected
+            alert("Stock change rejected!");
+            row.remove(); // Simulate rejection (remove from list)
+        }
+    </script>
+</body>
+</html>

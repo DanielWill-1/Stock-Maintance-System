@@ -85,6 +85,46 @@ app.delete('/stocks/:id', async (req, res) => {
     }
 });
 
+app.get("/approvals", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM approvals");
+        console.log("Database response:", result.rows);  // ✅ Debugging Log
+        res.json(result.rows);  // ✅ Ensure JSON array is sent
+    } catch (error) {
+        console.error("Error fetching approvals:", error); // ❌ Log error details
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.post("/approvals", async (req, res) => {
+    const { item_name, requestor_name, requested_quantity } = req.body;
+    try {
+        const result = await pool.query(
+            "INSERT INTO approvals (item_name, requestor_name, requested_quantity, status) VALUES ($1, $2, $3, 'Pending') RETURNING *",
+            [item_name, requestor_name, requested_quantity]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error("Error adding approval:", error);
+        res.status(500).json({ error: "Failed to add approval request" });
+    }
+});
+
+
+app.put("/approvals/:id", async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    try {
+        const result = await pool.query(
+            "UPDATE stock_maintenance1 SET status = $1 WHERE id = $2 RETURNING *",
+            [status, id]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

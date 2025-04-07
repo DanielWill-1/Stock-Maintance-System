@@ -6,13 +6,13 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const port = process.env.PORT || 5000; // Use PORT from .env or default to 5000
-
+app.use(cors()); // Enable CORS for all origins (adjust as needed)
 // Middleware
-app.use(cors({
-    origin: 'http://localhost:5500', // Adjust to match your frontend's origin (e.g., live-server)
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type']
-}));
+//app.use(cors({
+//    origin: 'http://127.0.0.1:8080', // Adjust to match your frontend's origin (e.g., live-server)
+//    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//    allowedHeaders: ['Content-Type']
+//}));
 app.use(bodyParser.json());
 
 // PostgreSQL connection using environment variables
@@ -118,17 +118,24 @@ app.get('/approvals', async (req, res) => {
 });
 
 // Add new approval request
-app.post('/approvals', async (req, res) => {
-    const { item_name, requestor_name, requested_quantity } = req.body;
-    console.log('Received POST data for approvals:', { item_name, requestor_name, requested_quantity });
-    if (!item_name || !requestor_name || requested_quantity === undefined) {
-        return res.status(400).json({ error: 'Missing required fields: item_name, requestor_name, or requested_quantity' });
+app.post("/approvals", async (req, res) => {
+    const { item_name, requestor_name, requested_item } = req.body;
+    const status = 'pending'; // Default status
+
+    console.log('Received POST data for approvals:', { item_name, requestor_name, requested_item });
+
+    if (!item_name || !requestor_name || !requested_item) {
+        return res.status(400).json({ error: 'Missing required fields: item_name, requestor_name, or requested_item' });
     }
+
     try {
         const result = await pool.query(
-            'INSERT INTO approvals (item_name, requestor_name, requested_quantity, status) VALUES ($1, $2, $3, $4) RETURNING *',
-            [item_name, requestor_name, requested_quantity, 'Pending']
+            `INSERT INTO approvals (item_name, requestor_name, requested_item, status)
+             VALUES ($1, $2, $3, $4)
+             RETURNING *`,
+            [item_name, requestor_name, requested_item, status]
         );
+
         console.log('Inserted into approvals DB:', result.rows[0]);
         res.status(201).json(result.rows[0]);
     } catch (err) {

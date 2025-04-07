@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Approvals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+        }
+        .sidebar a:hover {
+            color: #007bff;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+        .form-container {
+            width: 50%;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        label {
+            margin: 10px 0 5px;
+            color: #555;
+            width: 100%;
+            text-align: left;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stock-management">Stock Management</a>
+            <a href="/stock-alerts">Stock Alerts</a>
+            <a href="/stock-logging">Stock Logging</a>
+            <a href="/admin-approval.html">Stock Approval</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <div class="main-content">
+            <div class="form-container">
+                <h1>Add Approval Request</h1>
+                <div id="message"></div>
+                <form id="approval-form">
+                    <label for="item-name">Item Name:</label>
+                    <input type="text" id="item-name" placeholder="Item Name" required>
+                    
+                    <label for="requestor-name">Requested By:</label>
+                    <input type="text" id="requestor-name" placeholder="Requestor Name" required>
+                    
+                    <label for="requested-item">Requested Item:</label>
+                    <input type="text" id="requested-item" placeholder="Requested Item" required>
+                    
+                    <button type="submit">Submit Approval Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("approval-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const approvalRequest = {
+                item_name: document.getElementById("item-name").value,
+                requestor_name: document.getElementById("requestor-name").value,
+                requested_item: document.getElementById("requested-item").value
+            };
+            console.log("Submitting approval request:", approvalRequest);
+
+            fetch("http://localhost:5000/approvals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(approvalRequest)
+            })
+            .then(response => {
+                console.log("POST response:", response);
+                if (!response.ok) throw new Error("Failed to add approval request");
+                return response.json();
+            })
+            .then(data => {
+                console.log("Approval request success:", data);
+                document.getElementById("approval-form").reset();
+                showMessage("Approval request added successfully", true);
+            })
+            .catch(error => {
+                console.error("Error adding approval request:", error);
+                showMessage("Error adding approval request", false);
+            });
+        });
+
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = isSuccess ? "success" : "error";
+            messageDiv.style.display = "block";
+            setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

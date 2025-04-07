@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Approval</title>
+    <title>Stock Approval Admin</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,7 +19,7 @@
             color: white;
             height: 100vh;
             padding: 20px;
-            position: fixed; /* Fixed sidebar */
+            position: fixed;
         }
         .sidebar h2 {
             margin-top: 0;
@@ -34,7 +34,7 @@
             color: #007bff;
         }
         .main-content {
-            margin-left: 250px; /* Offset for sidebar */
+            margin-left: 250px;
             padding: 20px;
             flex-grow: 1;
             display: flex;
@@ -59,7 +59,7 @@
         }
         th, td {
             padding: 12px;
-            text-align: center; /* Center-align for consistency */
+            text-align: center;
             border-bottom: 1px solid #ddd;
         }
         th {
@@ -90,15 +90,24 @@
         .reject-btn:hover {
             background-color: #c82333;
         }
+        .add-approval-btn {
+            background-color: #007bff;
+            color: white;
+            margin: 20px auto;
+            display: block;
+        }
+        .add-approval-btn:hover {
+            background-color: #0056b3;
+        }
         .status-pending {
-            color: #ffc107; /* Yellow for Pending */
+            color: #ffc107;
             font-weight: bold;
         }
         .status-approved {
-            color: #28a745; /* Green for Approved */
+            color: #28a745;
         }
         .status-rejected {
-            color: #dc3545; /* Red for Rejected */
+            color: #dc3545;
         }
         #message {
             margin: 10px auto;
@@ -126,12 +135,12 @@
             <a href="/stock-management">Stock Management</a>
             <a href="/stock-alerts">Stock Alerts</a>
             <a href="/stock-logging">Stock Logging</a>
-            <a href="/admin-approval">Admin Approval</a>
+            <a href="/add_approvals.html">Stock Approval</a>
             <a href="/logout">Logout</a>
         </div>
         <div class="main-content">
             <div class="approval-container">
-                <h1>Admin Approval</h1>
+                <h1>Stock Approval Admin</h1>
                 <div id="message"></div>
                 <table>
                     <thead>
@@ -139,6 +148,7 @@
                             <th>Request ID</th>
                             <th>Item Name</th>
                             <th>Quantity</th>
+                            <th>Price</th>
                             <th>Requested By</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -146,11 +156,14 @@
                     </thead>
                     <tbody id="approvals-body"></tbody>
                 </table>
+                <button class="add-approval-btn" onclick="window.location.href='add_approvals.html'">Add Approvals</button>
             </div>
         </div>
     </div>
 
     <script>
+        let mockApprovals = [];
+
         document.addEventListener("DOMContentLoaded", function () {
             fetchApprovals();
         });
@@ -169,32 +182,13 @@
             console.log("Fetching approvals...");
             fetch("http://localhost:5000/approvals")
                 .then(response => {
-                    console.log("Fetch response:", response);
                     if (!response.ok) throw new Error("Failed to fetch approvals");
                     return response.json();
                 })
                 .then(data => {
                     console.log("Fetched approvals data:", data);
-                    const tbody = document.getElementById("approvals-body");
-                    tbody.innerHTML = ""; // Clear existing rows
-                    data.forEach(item => {
-                        const row = document.createElement("tr");
-                        const statusClass = getStatusClass(item.status);
-                        row.innerHTML = `
-                            <td>${item.id}</td>
-                            <td>${item.item_name}</td>
-                            <td>${item.requested_quantity}</td>
-                            <td>${item.requestor_name}</td>
-                            <td class="${statusClass}">${item.status}</td>
-                            <td>
-                                ${item.status === 'Pending' ? `
-                                    <button class="approve-btn" onclick="updateApproval(${item.id}, 'Approved')">Approve</button>
-                                    <button class="reject-btn" onclick="updateApproval(${item.id}, 'Rejected')">Reject</button>
-                                ` : '—'}
-                            </td>
-                        `;
-                        tbody.appendChild(row);
-                    });
+                    mockApprovals = data;
+                    renderTable();
                     showMessage("Approvals loaded successfully", true);
                 })
                 .catch(error => {
@@ -203,40 +197,49 @@
                 });
         }
 
+        function renderTable() {
+            const tbody = document.getElementById("approvals-body");
+            tbody.innerHTML = "";
+            mockApprovals.forEach(item => {
+                const row = document.createElement("tr");
+                const statusClass = getStatusClass(item.status);
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.item_name}</td>
+                    <td>${item.requested_quantity}</td>
+                    <td>$${item.price ? item.price.toFixed(2) : 'N/A'}</td>
+                    <td>${item.requestor_name}</td>
+                    <td class="${statusClass}">${item.status}</td>
+                    <td>
+                        ${item.status === 'Pending' ? `
+                            <button class="approve-btn" onclick="updateApproval(${item.id}, 'Approved')">Approve</button>
+                            <button class="reject-btn" onclick="updateApproval(${item.id}, 'Rejected')">Reject</button>
+                        ` : '—'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
         function getStatusClass(status) {
             switch (status.toLowerCase()) {
-                case 'pending':
-                    return 'status-pending';
-                case 'approved':
-                    return 'status-approved';
-                case 'rejected':
-                    return 'status-rejected';
-                default:
-                    return '';
+                case 'pending': return 'status-pending';
+                case 'approved': return 'status-approved';
+                case 'rejected': return 'status-rejected';
+                default: return '';
             }
         }
 
         function updateApproval(id, status) {
-            console.log(`Updating approval ${id} to ${status}`);
-            fetch(`http://localhost:5000/approvals/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status })
-            })
-                .then(response => {
-                    console.log("Update response:", response);
-                    if (!response.ok) throw new Error("Failed to update approval");
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Updated approval data:", data);
-                    fetchApprovals(); // Refresh table
-                    showMessage(`Approval ${status.toLowerCase()} successfully`, true);
-                })
-                .catch(error => {
-                    console.error("Error updating approval:", error);
-                    showMessage("Error updating approval", false);
-                });
+            console.log(`Updating approval ${id} to ${status} (placeholder)`);
+            const item = mockApprovals.find(a => a.id === id);
+            if (item) {
+                item.status = status;
+                renderTable();
+                showMessage(`Approval ${status.toLowerCase()} successfully (placeholder)`, true);
+            } else {
+                showMessage("Approval not found", false);
+            }
         }
     </script>
 </body>

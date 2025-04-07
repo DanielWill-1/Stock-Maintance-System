@@ -4,28 +4,290 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Logging</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+        }
+        .sidebar a:hover {
+            color: #007bff;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+        .logging-container {
+            width: 80%;
+            max-width: 1000px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        label {
+            margin: 10px 0 5px;
+            color: #555;
+            width: 100%;
+            text-align: left;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .submit-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .submit-btn:hover {
+            background-color: #218838;
+        }
+        .csv-btn {
+            background-color: #007bff;
+            color: white;
+            margin: 10px 10px 0 0;
+        }
+        .csv-btn:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        #message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 </head>
 <body>
-    <h1>Stock Logging</h1>
-    <form action="/log-stock" method="POST">
-        <label for="item-name">Item Name:</label><br>
-        <input type="text" id="item-name" name="item-name" required><br><br>
-        
-        <label for="quantity">Quantity:</label><br>
-        <input type="number" id="quantity" name="quantity" required><br><br>
-        
-        <label for="action">Action:</label><br>
-        <select id="action" name="action">
-            <option value="add">Add Stock</option>
-            <option value="remove">Remove Stock</option>
-        </select><br><br>
-        
-        <button type="submit">Log Stock</button>
-    </form>
-    <h2>Recent Logs</h2>
-    <ul>
-        <li>Added 10 units of Item A - 2025-04-07</li>
-        <li>Removed 5 units of Item B - 2025-04-06</li>
-    </ul>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stock-management">Stock Management</a>
+            <a href="/stock-alerts">Stock Alerts</a>
+            <a href="/stock-logging">Stock Logging</a>
+            <a href="/admin-approval.html">Stock Approval</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <div class="main-content">
+            <div class="logging-container">
+                <h1>Stock Logging</h1>
+                <div id="message"></div>
+                <form id="log-form">
+                    <label for="item-name">Item Name:</label>
+                    <input type="text" id="item-name" name="item-name" placeholder="Item Name" required>
+                    
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" placeholder="Quantity" min="0" required>
+                    
+                    <label for="action">Action:</label>
+                    <select id="action" name="action">
+                        <option value="add">Add Stock</option>
+                        <option value="remove">Remove Stock</option>
+                    </select>
+                    
+                    <button type="submit" class="submit-btn">Log Stock</button>
+                </form>
+                <h2>Recent Logs</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Action</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body"></tbody>
+                </table>
+                <button class="csv-btn" onclick="downloadCSV()">Download as CSV</button>
+                <button class="csv-btn" onclick="importCSV()">Import CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchLogs();
+        });
+
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = isSuccess ? "success" : "error";
+            messageDiv.style.display = "block";
+            setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 3000);
+        }
+
+        function fetchLogs() {
+            console.log("Fetching logs...");
+            fetch("http://localhost:5000/logs")
+                .then(response => {
+                    if (!response.ok) throw new Error("Failed to fetch logs");
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched logs:", data);
+                    const tbody = document.getElementById("logs-body");
+                    tbody.innerHTML = "";
+                    data.forEach(log => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${log.id}</td>
+                            <td>${log.item_name}</td>
+                            <td>${log.quantity}</td>
+                            <td>${log.action}</td>
+                            <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching logs:", error);
+                    showMessage("Error loading logs", false);
+                    // Fallback to static data if fetch fails
+                    renderStaticLogs();
+                });
+        }
+
+        function renderStaticLogs() {
+            const tbody = document.getElementById("logs-body");
+            tbody.innerHTML = `
+                <tr>
+                    <td>1</td>
+                    <td>Item A</td>
+                    <td>10</td>
+                    <td>Add Stock</td>
+                    <td>2025-04-07 10:00:00</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Item B</td>
+                    <td>5</td>
+                    <td>Remove Stock</td>
+                    <td>2025-04-06 15:30:00</td>
+                </tr>
+            `;
+        }
+
+        document.getElementById("log-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const logData = {
+                item_name: document.getElementById("item-name").value,
+                quantity: parseInt(document.getElementById("quantity").value),
+                action: document.getElementById("action").value,
+                timestamp: new Date().toISOString()
+            };
+            console.log("Submitting log:", logData);
+
+            fetch("http://localhost:5000/logs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(logData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to log stock");
+                return response.json();
+            })
+            .then(data => {
+                console.log("Log success:", data);
+                fetchLogs();
+                document.getElementById("log-form").reset();
+                showMessage("Stock logged successfully", true);
+            })
+            .catch(error => {
+                console.error("Error logging stock:", error);
+                showMessage("Error logging stock", false);
+            });
+        });
+
+        function downloadCSV() {
+            console.log("Download as CSV (placeholder)");
+            showMessage("CSV download functionality not implemented yet", false);
+            // Placeholder: Add actual CSV export logic here
+        }
+
+        function importCSV() {
+            console.log("Import CSV (placeholder)");
+            showMessage("CSV import functionality not implemented yet", false);
+            // Placeholder: Add actual CSV import logic here
+        }
+    </script>
 </body>
 </html>

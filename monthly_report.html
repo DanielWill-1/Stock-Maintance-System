@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Stock Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+        }
+        .sidebar a:hover {
+            color: #007bff;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+        .reports-container {
+            width: 80%;
+            max-width: 1000px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            margin: 10px 10px 0 0;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stock-management">Stock Management</a>
+            <a href="/stock-alerts">Stock Alerts</a>
+            <a href="/stock-logging">Stock Logging</a>
+            <a href="/stock-approval-admin">Stock Approval Admin</a>
+            <a href="/monthly-stock-reports">Monthly Stock Reports</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <div class="main-content">
+            <div class="reports-container">
+                <h1>Monthly Stock Reports</h1>
+                <div id="message"></div>
+                <h2>Stock Summary by Month</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Item Name</th>
+                            <th>Total Added</th>
+                            <th>Total Removed</th>
+                            <th>Net Change</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-body"></tbody>
+                </table>
+                <button onclick="downloadCSV()">Download as CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchReports();
+        });
+
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = isSuccess ? "success" : "error";
+            messageDiv.style.display = "block";
+            setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 3000);
+        }
+
+        function fetchReports() {
+            console.log("Fetching monthly reports...");
+            fetch("http://localhost:5000/monthly-reports")
+                .then(response => {
+                    if (!response.ok) throw new Error("Failed to fetch reports");
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched reports:", data);
+                    renderReports(data);
+                })
+                .catch(error => {
+                    console.error("Error fetching reports:", error);
+                    showMessage("Error loading reports", false);
+                    // Fallback to placeholder data
+                    renderPlaceholderReports();
+                });
+        }
+
+        function renderReports(data) {
+            const tbody = document.getElementById("reports-body");
+            tbody.innerHTML = "";
+            data.forEach(report => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${report.month}</td>
+                    <td>${report.item_name}</td>
+                    <td>${report.total_added}</td>
+                    <td>${report.total_removed}</td>
+                    <td>${report.net_change}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderPlaceholderReports() {
+            const placeholderData = [
+                { month: "March 2025", item_name: "Laptop", total_added: 50, total_removed: 10, net_change: 40 },
+                { month: "March 2025", item_name: "Mouse", total_added: 100, total_removed: 30, net_change: 70 },
+                { month: "February 2025", item_name: "Laptop", total_added: 30, total_removed: 15, net_change: 15 },
+                { month: "February 2025", item_name: "Keyboard", total_added: 20, total_removed: 5, net_change: 15 }
+            ];
+            renderReports(placeholderData);
+        }
+
+        function downloadCSV() {
+            console.log("Download as CSV (placeholder)");
+            showMessage("CSV download functionality not implemented yet", false);
+            // Placeholder: Add actual CSV export logic here
+        }
+    </script>
+</body>
+</html>

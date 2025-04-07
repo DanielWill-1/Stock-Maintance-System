@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Approval</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed; /* Fixed sidebar */
+        }
+        .sidebar h2 {
+            margin-top: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+        }
+        .sidebar a:hover {
+            color: #007bff;
+        }
+        .main-content {
+            margin-left: 250px; /* Offset for sidebar */
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+        .approval-container {
+            width: 80%;
+            max-width: 1000px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center; /* Center-align for consistency */
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        button {
+            padding: 8px 15px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .approve-btn:hover {
+            background-color: #218838;
+        }
+        .reject-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .reject-btn:hover {
+            background-color: #c82333;
+        }
+        .status-pending {
+            color: #ffc107; /* Yellow for Pending */
+            font-weight: bold;
+        }
+        .status-approved {
+            color: #28a745; /* Green for Approved */
+        }
+        .status-rejected {
+            color: #dc3545; /* Red for Rejected */
+        }
+        #message {
+            margin: 10px auto;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            width: 50%;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stock-management">Stock Management</a>
+            <a href="/stock-alerts">Stock Alerts</a>
+            <a href="/stock-logging">Stock Logging</a>
+            <a href="/admin-approval">Admin Approval</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <div class="main-content">
+            <div class="approval-container">
+                <h1>Admin Approval</h1>
+                <div id="message"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Requested By</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvals-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchApprovals();
+        });
+
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = isSuccess ? "success" : "error";
+            messageDiv.style.display = "block";
+            setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 3000);
+        }
+
+        function fetchApprovals() {
+            console.log("Fetching approvals...");
+            fetch("http://localhost:5000/approvals")
+                .then(response => {
+                    console.log("Fetch response:", response);
+                    if (!response.ok) throw new Error("Failed to fetch approvals");
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched approvals data:", data);
+                    const tbody = document.getElementById("approvals-body");
+                    tbody.innerHTML = ""; // Clear existing rows
+                    data.forEach(item => {
+                        const row = document.createElement("tr");
+                        const statusClass = getStatusClass(item.status);
+                        row.innerHTML = `
+                            <td>${item.id}</td>
+                            <td>${item.item_name}</td>
+                            <td>${item.requested_quantity}</td>
+                            <td>${item.requestor_name}</td>
+                            <td class="${statusClass}">${item.status}</td>
+                            <td>
+                                ${item.status === 'Pending' ? `
+                                    <button class="approve-btn" onclick="updateApproval(${item.id}, 'Approved')">Approve</button>
+                                    <button class="reject-btn" onclick="updateApproval(${item.id}, 'Rejected')">Reject</button>
+                                ` : '—'}
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    showMessage("Approvals loaded successfully", true);
+                })
+                .catch(error => {
+                    console.error("Error fetching approvals:", error);
+                    showMessage("Error loading approvals", false);
+                });
+        }
+
+        function getStatusClass(status) {
+            switch (status.toLowerCase()) {
+                case 'pending':
+                    return 'status-pending';
+                case 'approved':
+                    return 'status-approved';
+                case 'rejected':
+                    return 'status-rejected';
+                default:
+                    return '';
+            }
+        }
+
+        function updateApproval(id, status) {
+            console.log(`Updating approval ${id} to ${status}`);
+            fetch(`http://localhost:5000/approvals/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status })
+            })
+                .then(response => {
+                    console.log("Update response:", response);
+                    if (!response.ok) throw new Error("Failed to update approval");
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Updated approval data:", data);
+                    fetchApprovals(); // Refresh table
+                    showMessage(`Approval ${status.toLowerCase()} successfully`, true);
+                })
+                .catch(error => {
+                    console.error("Error updating approval:", error);
+                    showMessage("Error updating approval", false);
+                });
+        }
+    </script>
+</body>
+</html>

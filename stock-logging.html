@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Logging</title>
+</head>
+<body>
+    <h1>Stock Logging</h1>
+    <form action="/log-stock" method="POST">
+        <label for="item-name">Item Name:</label><br>
+        <input type="text" id="item-name" name="item-name" required><br><br>
+        
+        <label for="quantity">Quantity:</label><br>
+        <input type="number" id="quantity" name="quantity" required><br><br>
+        
+        <label for="action">Action:</label><br>
+        <select id="action" name="action">
+            <option value="add">Add Stock</option>
+            <option value="remove">Remove Stock</option>
+        </select><br><br>
+        
+        <button type="submit">Log Stock</button>
+    </form>
+    <h2>Recent Logs</h2>
+    <ul>
+        <li>Added 10 units of Item A - 2025-04-07</li>
+        <li>Removed 5 units of Item B - 2025-04-06</li>
+    </ul>
+</body>
+</html>

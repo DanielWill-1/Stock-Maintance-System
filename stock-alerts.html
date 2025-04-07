@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Alerts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed; /* Keeps sidebar fixed on scroll */
+        }
+        .sidebar h2 {
+            margin-top: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+        }
+        .sidebar a:hover {
+            color: #007bff;
+        }
+        .main-content {
+            margin-left: 250px; /* Offset for sidebar */
+            padding: 20px;
+            flex-grow: 1;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden; /* Ensures rounded corners apply to table */
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .low-stock {
+            color: #ffc107; /* Yellow for low stock */
+            font-weight: bold;
+        }
+        .out-of-stock {
+            color: #dc3545; /* Red for out of stock */
+            font-weight: bold;
+        }
+        .in-stock {
+            color: #28a745; /* Green for in stock */
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin: 10px auto;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            width: 50%;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stock-management">Stock Management</a>
+            <a href="/stock-alerts">Stock Alerts</a>
+            <a href="/stock-logging">Stock Logging</a>
+            <a href="/admin-approval">Admin Approval</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <div class="main-content">
+            <h1>Stock Alerts</h1>
+            <div id="message"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Stock Level</th>
+                        <th>Alert Status</th>
+                    </tr>
+                </thead>
+                <tbody id="alerts-body"></tbody>
+            </table>
+            <button onclick="refreshAlerts()">Refresh Alerts</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchStockAlerts();
+        });
+
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = isSuccess ? "success" : "error";
+            messageDiv.style.display = "block";
+            setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 3000);
+        }
+
+        function fetchStockAlerts() {
+            console.log("Fetching stock alerts...");
+            fetch("http://localhost:5000/stocks")
+                .then(response => {
+                    console.log("Fetch response:", response);
+                    if (!response.ok) throw new Error("Failed to fetch stock data");
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched stock data:", data);
+                    const tbody = document.getElementById("alerts-body");
+                    tbody.innerHTML = ""; // Clear existing rows
+                    data.forEach(item => {
+                        const alertStatus = getAlertStatus(item.quantity);
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>${item.quantity}</td>
+                            <td class="${alertStatus.class}">${alertStatus.text}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    showMessage("Alerts refreshed successfully", true);
+                })
+                .catch(error => {
+                    console.error("Error fetching stock alerts:", error);
+                    showMessage("Error loading stock alerts", false);
+                });
+        }
+
+        function getAlertStatus(quantity) {
+            if (quantity === 0) {
+                return { text: "Out of Stock", class: "out-of-stock" };
+            } else if (quantity <= 5) {
+                return { text: "Low Stock (Reorder)", class: "low-stock" };
+            } else {
+                return { text: "In Stock", class: "in-stock" };
+            }
+        }
+
+        function refreshAlerts() {
+            fetchStockAlerts();
+        }
+    </script>
+</body>
+</html>

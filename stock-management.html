@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+        }
+        .sidebar a:hover {
+            color: #007bff;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .stock-container {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid black;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .add-btn, form button {
+            background-color: #28a745;
+            color: white;
+        }
+        .add-btn:hover, form button:hover {
+            background-color: #218838;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: black;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        #message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/stock-management">Stock Management</a>
+            <a href="/stock-alerts">Stock Alerts</a>
+            <a href="/stock-logging">Stock Logging</a>
+            <a href="/admin-approval">Admin Approval</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <div class="main-content">
+            <div class="stock-container">
+                <h1>Stock Management</h1>
+                <section class="add-stock">
+                    <h2>Add New Item</h2>
+                    <div id="message"></div>
+                    <form id="stock-form">
+                        <input type="text" id="item-name" placeholder="Item Name" required>
+                        <input type="number" id="quantity" placeholder="Quantity" min="0" required>
+                        <input type="number" id="price" placeholder="Price per Unit" step="0.01" min="0" required>
+                        <button type="submit">Add Item</button>
+                    </form>
+                </section>
+                <section class="stock-table">
+                    <h2>Current Stock</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Price per Unit</th>
+                                <th>Total Value</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stock-body"></tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchStockItems();
+        });
+
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = isSuccess ? "success" : "error";
+            messageDiv.style.display = "block";
+            setTimeout(() => {
+                messageDiv.style.display = "none";
+            }, 3000);
+        }
+
+        function fetchStockItems() {
+            console.log("Fetching stock items...");
+            fetch("http://localhost:5000/stocks")
+                .then(response => {
+                    console.log("Fetch response:", response);
+                    if (!response.ok) throw new Error("Failed to fetch stock items");
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched data:", data);
+                    let tableBody = document.getElementById("stock-body");
+                    tableBody.innerHTML = "";
+                    data.forEach(item => {
+                        let newRow = document.createElement("tr");
+                        newRow.innerHTML = `
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td>${item.quantity}</td>
+                            <td>$${parseFloat(item.price).toFixed(2)}</td>
+                            <td>$${(item.quantity * item.price).toFixed(2)}</td>
+                            <td>
+                                <button class="edit-btn" onclick="editItem(${item.id}, '${item.name}', ${item.quantity}, ${item.price})">Modify</button>
+                                <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(newRow);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching stock items:", error);
+                    showMessage("Error loading stock items", false);
+                });
+        }
+
+        document.getElementById("stock-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            let stockItem = {
+                name: document.getElementById("item-name").value,
+                quantity: parseInt(document.getElementById("quantity").value),
+                price: parseFloat(document.getElementById("price").value),
+            };
+            console.log("Submitting stock item:", stockItem);
+            fetch("http://localhost:5000/stocks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(stockItem)
+            })
+            .then(response => {
+                console.log("POST response:", response);
+                if (!response.ok) throw new Error("Failed to add item");
+                return response.json();
+            })
+            .then(data => {
+                console.log("POST success data:", data);
+                fetchStockItems();
+                document.getElementById("stock-form").reset();
+                showMessage("Item added successfully", true);
+            })
+            .catch(error => {
+                console.error("Error adding stock item:", error);
+                showMessage("Error adding item", false);
+            });
+        });
+
+        function deleteItem(id) {
+            fetch(`http://localhost:5000/stocks/${id}`, { method: "DELETE" })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to delete item");
+                fetchStockItems();
+                showMessage("Item deleted successfully", true);
+            })
+            .catch(error => {
+                console.error("Error deleting stock item:", error);
+                showMessage("Error deleting item", false);
+            });
+        }
+
+        function editItem(id, name, quantity, price) {
+            document.getElementById("item-name").value = name;
+            document.getElementById("quantity").value = quantity;
+            document.getElementById("price").value = price;
+
+            document.getElementById("stock-form").onsubmit = function (event) {
+                event.preventDefault();
+                let updatedItem = {
+                    name: document.getElementById("item-name").value,
+                    quantity: parseInt(document.getElementById("quantity").value),
+                    price: parseFloat(document.getElementById("price").value),
+                };
+                fetch(`http://localhost:5000/stocks/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updatedItem)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Failed to update item");
+                    fetchStockItems();
+                    document.getElementById("stock-form").reset();
+                    document.getElementById("stock-form").onsubmit = addStockItem;
+                    showMessage("Item updated successfully", true);
+                })
+                .catch(error => {
+                    console.error("Error updating stock item:", error);
+                    showMessage("Error updating item", false);
+                });
+            };
+        }
+
+        const addStockItem = document.getElementById("stock-form").onsubmit;
+    </script>
+</body>
+</html>
